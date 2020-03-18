@@ -1,28 +1,65 @@
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import './vendor.ts';
 
-import './vendor';
-import { JHipsterRegistrySharedModule } from 'app/shared/shared.module';
-import { JHipsterRegistryCoreModule } from 'app/core/core.module';
+import { NgModule, Injector } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { LocalStorageService, SessionStorageService, NgxWebstorageModule } from 'ngx-webstorage';
+import { JhiEventManager } from 'ng-jhipster';
+
+import { AuthInterceptor } from './blocks/interceptor/auth.interceptor';
+import { AuthExpiredInterceptor } from './blocks/interceptor/auth-expired.interceptor';
+import { ErrorHandlerInterceptor } from './blocks/interceptor/errorhandler.interceptor';
+import { NotificationInterceptor } from './blocks/interceptor/notification.interceptor';
+import { JHipsterRegistrySharedModule, UserRouteAccessService } from './shared';
 import { JHipsterRegistryAppRoutingModule } from './app-routing.module';
-import { JHipsterRegistryHomeModule } from './home/home.module';
-// jhipster-needle-angular-add-module-import JHipster will add new module here
-import { MainComponent } from './layouts/main/main.component';
-import { NavbarComponent } from './layouts/navbar/navbar.component';
-import { FooterComponent } from './layouts/footer/footer.component';
-import { PageRibbonComponent } from './layouts/profiles/page-ribbon.component';
-import { ErrorComponent } from './layouts/error/error.component';
+import { JHipsterRegistryHomeModule } from 'app/home';
+import { JHipsterRegistryAdminModule } from './admin/admin.module';
+import { JHipsterRegistryModule } from './registry/registry.module';
+
+import { PaginationConfig } from './blocks/config/uib-pagination.config';
+
+import { JhiMainComponent, NavbarComponent, FooterComponent, ProfileService, PageRibbonComponent, ErrorComponent } from './layouts';
 
 @NgModule({
   imports: [
     BrowserModule,
-    JHipsterRegistrySharedModule,
-    JHipsterRegistryCoreModule,
+    JHipsterRegistryAppRoutingModule,
+    NgxWebstorageModule.forRoot({ prefix: 'jhi', separator: '-' }),
+    JHipsterRegistrySharedModule.forRoot(),
     JHipsterRegistryHomeModule,
-    // jhipster-needle-angular-add-module JHipster will add new module here
-    JHipsterRegistryAppRoutingModule
+    JHipsterRegistryAdminModule,
+    JHipsterRegistryModule
   ],
-  declarations: [MainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, FooterComponent],
-  bootstrap: [MainComponent]
+  declarations: [JhiMainComponent, NavbarComponent, ErrorComponent, PageRibbonComponent, FooterComponent],
+  providers: [
+    ProfileService,
+    PaginationConfig,
+    UserRouteAccessService,
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true,
+      deps: [LocalStorageService, SessionStorageService]
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthExpiredInterceptor,
+      multi: true,
+      deps: [Injector]
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorHandlerInterceptor,
+      multi: true,
+      deps: [JhiEventManager]
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: NotificationInterceptor,
+      multi: true,
+      deps: [Injector]
+    }
+  ],
+  bootstrap: [JhiMainComponent]
 })
 export class JHipsterRegistryAppModule {}

@@ -1,21 +1,17 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router, ActivatedRouteSnapshot, NavigationEnd, RoutesRecognized, NavigationError } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRouteSnapshot, NavigationEnd, RoutesRecognized } from '@angular/router';
 
 import { Title } from '@angular/platform-browser';
-import { StateStorageService } from 'app/core/auth/state-storage.service';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { StateStorageService } from 'app/shared';
 
 @Component({
   selector: 'jhi-main',
   templateUrl: './main.component.html'
 })
-export class MainComponent implements OnInit, OnDestroy {
-  unsubscribe$ = new Subject();
-
+export class JhiMainComponent implements OnInit {
   constructor(private titleService: Title, private router: Router, private $storageService: StateStorageService) {}
 
-  private getPageTitle(routeSnapshot: ActivatedRouteSnapshot): string {
+  private getPageTitle(routeSnapshot: ActivatedRouteSnapshot) {
     let title: string = routeSnapshot.data && routeSnapshot.data['pageTitle'] ? routeSnapshot.data['pageTitle'] : 'jHipsterRegistryApp';
     if (routeSnapshot.firstChild) {
       title = this.getPageTitle(routeSnapshot.firstChild) || title;
@@ -23,8 +19,8 @@ export class MainComponent implements OnInit, OnDestroy {
     return title;
   }
 
-  ngOnInit(): void {
-    this.router.events.pipe(takeUntil(this.unsubscribe$)).subscribe(event => {
+  ngOnInit() {
+    this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         this.titleService.setTitle(this.getPageTitle(this.router.routerState.snapshot.root));
       }
@@ -32,7 +28,7 @@ export class MainComponent implements OnInit, OnDestroy {
         let params = {};
         let destinationData = {};
         let destinationName = '';
-        const destinationEvent = event.state.root.firstChild!.children[0];
+        const destinationEvent = event.state.root.firstChild.children[0];
         if (destinationEvent !== undefined) {
           params = destinationEvent.params;
           destinationData = destinationEvent.data;
@@ -42,15 +38,6 @@ export class MainComponent implements OnInit, OnDestroy {
         const destination = { name: destinationName, data: destinationData };
         this.$storageService.storeDestinationState(destination, params, from);
       }
-      if (event instanceof NavigationError && event.error.status === 404) {
-        this.router.navigate(['/404']);
-      }
     });
-  }
-
-  ngOnDestroy(): void {
-    // prevent memory leak when component destroyed
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
   }
 }

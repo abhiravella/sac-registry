@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public class TokenRelayRequestInterceptor implements RequestInterceptor {
 
-    public static final String AUTHORIZATION = "Authorization";
+    private static final String AUTHORIZATION = "Authorization";
 
     private final AuthorizationHeaderUtil authorizationHeaderUtil;
 

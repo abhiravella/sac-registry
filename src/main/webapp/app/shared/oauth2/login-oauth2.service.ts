@@ -1,14 +1,16 @@
 import { Injectable } from '@angular/core';
+import { Principal } from 'app/core/auth/principal.service';
+import { AuthSessionServerProvider } from 'app/core/auth/auth-session.service';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { SERVER_API_URL } from 'app/app.constants';
 import { map } from 'rxjs/operators';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class LoginOAuth2Service {
   constructor(private http: HttpClient) {}
 
-  login(): void {
+  login() {
     let port = location.port ? ':' + location.port : '';
     if (port === ':9000') {
       port = ':8761';

@@ -1,78 +1,89 @@
+/* tslint:disable:no-access-missing-member */
+// TODO lint disabled as the filter pipe used in template seems to trigger this
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Application, ApplicationsService, Instance, InstanceStatus } from './applications.service';
-import { RefreshService } from 'app/shared/refresh/refresh.service';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { JhiApplicationsService } from './applications.service';
+import { JhiRefreshService } from 'app/shared/refresh/refresh.service';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'jhi-applications',
   templateUrl: './applications.component.html',
   styleUrls: ['applications.component.scss']
 })
-export class ApplicationsComponent implements OnInit, OnDestroy {
-  activeApplication?: Application | null;
-  applications?: Array<Application>;
-  instances?: Array<Instance>;
+export class JhiApplicationsComponent implements OnInit, OnDestroy {
+  application: any;
+  data: any;
+  instances: any;
+  activeInstance: any;
   orderProp: string;
-  private unsubscribe$ = new Subject();
 
-  constructor(private applicationsService: ApplicationsService, private refreshService: RefreshService) {
+  refreshReloadSubscription: Subscription;
+  applicationsServiceSubscription: Subscription;
+
+  constructor(private applicationsService: JhiApplicationsService, private refreshService: JhiRefreshService) {
     this.orderProp = 'name';
   }
 
-  ngOnInit(): void {
-    this.refreshService.refreshReload$.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.refresh());
+  ngOnInit() {
+    this.refreshReloadSubscription = this.refreshService.refreshReload$.subscribe(empty => this.refresh());
     this.refresh();
   }
 
-  refresh(): void {
-    this.applicationsService
-      .findAll()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(applications => {
-        this.applications = applications;
-        if (this.activeApplication) {
-          this.selectActiveApplication(this.activeApplication.name);
-        } else if (applications.length > 0) {
-          this.selectActiveApplication(applications[0].name);
-        }
-      });
+  ngOnDestroy() {
+    this.refreshReloadSubscription.unsubscribe();
+    this.applicationsServiceSubscription.unsubscribe();
   }
 
-  selectActiveApplication(applicationName: string): void {
-    this.applications!.forEach(application => {
-      application.active = '';
-      if (application.name === applicationName) {
-        this.activeApplication = application;
-        this.instances = application.instances;
-        application.active = 'active';
+  refresh() {
+    this.applicationsServiceSubscription = this.applicationsService.findAll().subscribe(data => {
+      this.data = data;
+      if (this.application) {
+        this.show(this.application);
+      } else if (data.applications.length > 0) {
+        this.show(data.applications[0].name);
       }
     });
   }
 
-  checkInstanceLength(instances: Array<Instance>): boolean {
-    return this.countActiveInstances(instances) < instances.length;
+  show(app) {
+    this.application = app;
+    let found = false;
+    for (const dataApp of this.data.applications) {
+      dataApp.active = '';
+      if (dataApp.name === this.application) {
+        this.instances = dataApp.instances;
+        dataApp.active = 'active';
+        found = true;
+      }
+    }
+    if (!found) {
+      this.application = false;
+    }
   }
 
-  displayCountInstances(instances: Array<Instance>): string {
-    return this.countActiveInstances(instances) + '/' + instances.length;
+  countInstances(app) {
+    let count = 0;
+    for (const instance of app) {
+      if (instance.status === 'UP') {
+        count++;
+      }
+    }
+    return count;
   }
 
-  countActiveInstances(instances: Array<Instance>): number {
-    return instances.filter(instance => instance.status === 'UP').length;
+  checkInstanceLength(app) {
+    return this.countInstances(app) < app.length;
   }
 
-  getBadgeClass(status: InstanceStatus): string {
-    if (status && status === 'UP') {
+  displayCountInstances(app) {
+    return this.countInstances(app) + '/' + app.length;
+  }
+
+  getBadgeClass(statusState) {
+    if (statusState && statusState === 'UP') {
       return 'badge-success';
     } else {
       return 'badge-danger';
     }
-  }
-
-  ngOnDestroy(): void {
-    // prevent memory leak when component destroyed
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
   }
 }

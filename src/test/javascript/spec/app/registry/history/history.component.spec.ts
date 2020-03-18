@@ -1,33 +1,32 @@
 import { ComponentFixture, TestBed, async, inject, fakeAsync, tick } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { JHipsterRegistryTestModule } from '../../../test.module';
-import { RefreshService } from 'app/shared/refresh/refresh.service';
-import { HistoryComponent } from 'app/registry/history/history.component';
-import { HistoryService } from 'app/registry/history/history.service';
+import { JhiHistoryComponent, JhiHistoryService } from 'app/registry';
+import { JhiRefreshService } from 'app/shared';
 
 describe('Component Tests', () => {
   describe('HistoryComponent', () => {
-    let comp: HistoryComponent;
-    let fixture: ComponentFixture<HistoryComponent>;
+    let comp: JhiHistoryComponent;
+    let fixture: ComponentFixture<JhiHistoryComponent>;
 
     beforeEach(async(() => {
       TestBed.configureTestingModule({
         imports: [JHipsterRegistryTestModule],
-        declarations: [HistoryComponent],
-        providers: [HistoryService, RefreshService]
+        declarations: [JhiHistoryComponent],
+        providers: [JhiHistoryService, JhiRefreshService]
       })
-        .overrideTemplate(HistoryComponent, '')
+        .overrideTemplate(JhiHistoryComponent, '')
         .compileComponents();
     }));
 
     beforeEach(() => {
-      fixture = TestBed.createComponent(HistoryComponent);
+      fixture = TestBed.createComponent(JhiHistoryComponent);
       comp = fixture.componentInstance;
       fixture.detectChanges();
     });
 
     it('refresh data', fakeAsync(
-      inject([HistoryService], (service: HistoryService) => {
+      inject([JhiHistoryService], (service: JhiHistoryService) => {
         const response = {
           canceled: {
             '11052017': 'instance1'
@@ -36,18 +35,18 @@ describe('Component Tests', () => {
             '11022017': 'instance2'
           }
         };
-        spyOn(service, 'findAll').and.returnValue(of(response));
+        spyOn(service, 'findAll').and.returnValue(Observable.of(response));
 
         comp.refresh();
         tick();
 
         expect(service.findAll).toHaveBeenCalled();
-        expect(comp.eurekaHistory).toEqual(response);
+        expect(comp.data).toEqual(response);
       })
     ));
 
     it('activate registered tab', fakeAsync(
-      inject([HistoryService], (service: HistoryService) => {
+      inject([JhiHistoryService], (service: JhiHistoryService) => {
         const response = {
           canceled: {
             '11052017': 'instance1'
@@ -56,13 +55,13 @@ describe('Component Tests', () => {
             '11022017': 'instance2'
           }
         };
-        spyOn(service, 'findAll').and.returnValue(of(response));
+        spyOn(service, 'findAll').and.returnValue(Observable.of(response));
 
         comp.ngOnInit();
         tick();
         comp.activate('registered');
 
-        expect(comp.histories![11022017]).toEqual('instance2');
+        expect(comp.items[0]).toEqual({ key: '11022017', value: 'instance2' });
       })
     ));
   });

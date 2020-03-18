@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
 
-import { MetricsMonitoringComponent } from './metrics.component';
+import { JhiMetricsMonitoringComponent } from './metrics.component';
 
 export const metricsRoute: Route = {
-  path: '',
-  component: MetricsMonitoringComponent,
+  path: 'jhi-metrics',
+  component: JhiMetricsMonitoringComponent,
   data: {
     pageTitle: 'Application Metrics'
   }

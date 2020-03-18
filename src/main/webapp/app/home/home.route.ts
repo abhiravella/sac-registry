@@ -1,6 +1,7 @@
 import { Route } from '@angular/router';
 
-import { HomeComponent } from './home.component';
+import { UserRouteAccessService } from 'app/shared';
+import { HomeComponent } from './';
 
 export const HOME_ROUTE: Route = {
   path: '',
@@ -8,5 +9,6 @@ export const HOME_ROUTE: Route = {
   data: {
     authorities: [],
     pageTitle: 'JHipster Registry'
-  }
+  },
+  canActivate: [UserRouteAccessService]
 };

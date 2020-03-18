@@ -4,8 +4,8 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'groupBy'
 })
 export class GroupByPipe implements PipeTransform {
-  transform(collection: Object[], term: string): any[] {
-    const newValue: any[] = [];
+  transform(collection: Object[], term: string) {
+    const newValue = [];
 
     collection.forEach(col => {
       const keyVal = this.deepFind(col, term);
@@ -19,13 +19,15 @@ export class GroupByPipe implements PipeTransform {
     return newValue;
   }
 
-  private deepFind(obj: Object, path: string): Object {
-    const paths = path.toString().split(/[.[\]]/);
+  private deepFind(obj, path) {
+    const paths = path.toString().split(/[.\[\]]/);
     let current = obj;
 
     paths.forEach(onePath => {
       if (onePath !== '') {
-        if (current[onePath]) {
+        if (!current[onePath]) {
+          return undefined;
+        } else {
           current = current[onePath];
         }
       }

@@ -1,37 +1,44 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { interval, Subject, Subscription } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { RefreshService } from './refresh.service';
+import { Subscription } from 'rxjs/Subscription';
+import { Observable } from 'rxjs/Rx';
+import { JhiRefreshService } from './refresh.service';
 
 @Component({
   selector: 'jhi-refresh-selector',
   templateUrl: './refresh-selector.component.html',
   styleUrls: ['refresh-selector.component.scss']
 })
-export class RefreshSelectorComponent implements OnInit, OnDestroy {
+export class JhiRefreshSelectorComponent implements OnInit, OnDestroy {
   activeRefreshTime: number;
   refreshTimes: number[];
-  refreshTimer?: Subscription;
+  refreshTimer: Subscription;
+  refreshChangedSubscription: Subscription;
 
-  unSubscribe$ = new Subject();
-
-  constructor(private refreshService: RefreshService) {
+  constructor(private refreshService: JhiRefreshService) {
     this.refreshTimes = [0, 5, 10, 30, 60, 300];
     this.activeRefreshTime = this.refreshTimes[0];
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.activeRefreshTime = this.refreshService.getSelectedRefreshTime();
-    this.refreshService.refreshChanged$.pipe(takeUntil(this.unSubscribe$)).subscribe(() => this.launchTimer(true));
+    this.refreshChangedSubscription = this.refreshService.refreshChanged$.subscribe(empty => this.launchTimer(true));
     this.launchTimer(false);
   }
 
-  manualRefresh(): void {
+  ngOnDestroy() {
+    /** prevent memory leak when component destroyed **/
+    this.refreshChangedSubscription.unsubscribe();
+    if (this.refreshTimer) {
+      this.refreshTimer.unsubscribe();
+    }
+  }
+
+  manualRefresh() {
     this.refreshService.refreshReload();
   }
 
   /** Change active time only if exists, else 0 **/
-  setActiveRefreshTime(time: number): void {
+  setActiveRefreshTime(time: number) {
     if (time && this.refreshTimes.findIndex(t => t === time) !== -1) {
       this.activeRefreshTime = time;
     } else {
@@ -42,18 +49,16 @@ export class RefreshSelectorComponent implements OnInit, OnDestroy {
   }
 
   /** Init the timer **/
-  subscribe(): void {
+  subscribe() {
     if (this.activeRefreshTime && this.activeRefreshTime > 0) {
-      this.refreshTimer = interval(this.activeRefreshTime * 1000)
-        .pipe(takeUntil(this.unSubscribe$))
-        .subscribe(() => {
-          this.refreshService.refreshReload();
-        });
+      this.refreshTimer = Observable.interval(this.activeRefreshTime * 1000).subscribe(() => {
+        this.refreshService.refreshReload();
+      });
     }
   }
 
   /** Launch (or relaunch if true) the timer. **/
-  launchTimer(relaunch: boolean): void {
+  launchTimer(relaunch: boolean) {
     if (relaunch && this.refreshTimer) {
       this.refreshTimer.unsubscribe();
     }
@@ -61,8 +66,8 @@ export class RefreshSelectorComponent implements OnInit, OnDestroy {
   }
 
   /* ==========================================================================
-                                      UI PART
-   ========================================================================== */
+                                        UI PART
+     ========================================================================== */
 
   classTime(): string {
     if (this.activeRefreshTime <= 0) {
@@ -71,7 +76,7 @@ export class RefreshSelectorComponent implements OnInit, OnDestroy {
     return 'fa fa-repeat';
   }
 
-  stateTime(time: number): string | void {
+  stateTime(time: number): string {
     if (time === this.activeRefreshTime) {
       return 'active';
     }
@@ -82,11 +87,5 @@ export class RefreshSelectorComponent implements OnInit, OnDestroy {
       return 'disabled';
     }
     return this.activeRefreshTime + ' sec.';
-  }
-
-  ngOnDestroy(): void {
-    /** prevent memory leak when component destroyed **/
-    this.unSubscribe$.next();
-    this.unSubscribe$.complete();
   }
 }

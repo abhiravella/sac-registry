@@ -1,10 +1,10 @@
 import { Route } from '@angular/router';
 
-import { HealthCheckComponent } from './health.component';
+import { JhiHealthCheckComponent } from './health.component';
 
 export const healthRoute: Route = {
-  path: '',
-  component: HealthCheckComponent,
+  path: 'jhi-health',
+  component: JhiHealthCheckComponent,
   data: {
     pageTitle: 'Health Checks'
   }

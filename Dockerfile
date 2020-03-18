@@ -1,4 +1,4 @@
-FROM adoptopenjdk:11-jdk-hotspot as builder
+FROM openjdk:8 as builder
 ADD . /code/
 RUN \
     apt-get update && \
@@ -12,13 +12,12 @@ RUN \
     apt-get clean && \
     rm -Rf /code/ /root/.m2 /root/.cache /tmp/* /var/lib/apt/lists/* /var/tmp/*
 
-FROM adoptopenjdk:11-jre-hotspot
+FROM openjdk:8-jre-alpine
 ENV SPRING_OUTPUT_ANSI_ENABLED=ALWAYS \
     JAVA_OPTS="" \
     SPRING_PROFILES_ACTIVE=prod
 EXPOSE 8761
-RUN apt-get install -y curl && \
-    apt-get clean && \
+RUN apk add --no-cache curl && \
     mkdir /target && \
     chmod g+rwx /target
 CMD java \

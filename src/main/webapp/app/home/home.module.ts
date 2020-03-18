@@ -1,14 +1,17 @@
-import { NgModule } from '@angular/core';
+import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { JHipsterRegistrySharedModule } from 'app/shared/shared.module';
-import { HOME_ROUTE } from './home.route';
-import { HomeComponent } from './home.component';
-import { EurekaStatusService } from 'app/home/eureka.status.service';
+import { JHipsterRegistrySharedModule } from 'app/shared';
+
+import { HOME_ROUTE, HomeComponent } from './';
+import { EurekaStatusService } from './eureka.status.service';
+import { JhiLoginModalComponent } from 'app/core/login/login.component';
 
 @NgModule({
-  imports: [JHipsterRegistrySharedModule, RouterModule.forChild([HOME_ROUTE])],
+  imports: [JHipsterRegistrySharedModule, RouterModule.forRoot([HOME_ROUTE], { useHash: true })],
   declarations: [HomeComponent],
-  providers: [EurekaStatusService]
+  entryComponents: [JhiLoginModalComponent],
+  providers: [EurekaStatusService],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class JHipsterRegistryHomeModule {}

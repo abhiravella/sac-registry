@@ -1,20 +1,17 @@
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgModule } from '@angular/core';
+import { ElementRef, NgModule, Renderer } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { JhiDataUtils, JhiDateUtils, JhiEventManager, JhiAlertService, JhiParseLinks } from 'ng-jhipster';
+import { JhiAlertService, JhiDataUtils, JhiDateUtils, JhiEventManager, JhiParseLinks } from 'ng-jhipster';
 
-import { AccountService } from 'app/core/auth/account.service';
-import { LoginModalService } from 'app/core/login/login-modal.service';
 import { MockAccountService } from './helpers/mock-account.service';
 import { MockActivatedRoute, MockRouter } from './helpers/mock-route.service';
 import { MockActiveModal } from './helpers/mock-active-modal.service';
 import { MockEventManager } from './helpers/mock-event-manager.service';
-import { SessionStorageService } from 'ngx-webstorage';
-import { StateStorageService } from 'app/core/auth/state-storage.service';
-import { MockStateStorageService } from './helpers/mock-state-storage.service';
-import { MockSessionStorageService } from './helpers/mock-session-storage.service';
+import { AccountService, LoginModalService } from 'app/core';
+import { NgxWebstorageModule } from 'ngx-webstorage';
+import { JhiRoutesService } from 'app/shared';
 
 @NgModule({
   providers: [
@@ -22,6 +19,7 @@ import { MockSessionStorageService } from './helpers/mock-session-storage.servic
     JhiDataUtils,
     JhiDateUtils,
     JhiParseLinks,
+    JhiRoutesService,
     {
       provide: JhiEventManager,
       useClass: MockEventManager
@@ -47,22 +45,22 @@ import { MockSessionStorageService } from './helpers/mock-session-storage.servic
       useValue: null
     },
     {
+      provide: ElementRef,
+      useValue: null
+    },
+    {
+      provide: Renderer,
+      useValue: null
+    },
+    {
       provide: JhiAlertService,
       useValue: null
     },
     {
       provide: NgbModal,
       useValue: null
-    },
-    {
-      provide: SessionStorageService,
-      useClass: MockSessionStorageService
-    },
-    {
-      provide: StateStorageService,
-      useClass: MockStateStorageService
     }
   ],
-  imports: [HttpClientTestingModule]
+  imports: [HttpClientTestingModule, NgxWebstorageModule.forRoot({ prefix: 'jhi', separator: '-' })]
 })
 export class JHipsterRegistryTestModule {}

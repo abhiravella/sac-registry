@@ -1,45 +1,32 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { map, shareReplay } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 
 import { SERVER_API_URL } from 'app/app.constants';
-import { InfoResponse, ProfileInfo } from './profile-info.model';
+import { ProfileInfo } from './profile-info.model';
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class ProfileService {
-  private infoUrl = SERVER_API_URL + 'management/info';
-  private profileInfo$!: Observable<ProfileInfo>;
+  private profileInfoUrl = SERVER_API_URL + 'api/profile-info';
+  private profileInfo: Promise<ProfileInfo>;
 
   constructor(private http: HttpClient) {}
 
-  getProfileInfo(): Observable<ProfileInfo> {
-    if (this.profileInfo$) {
-      return this.profileInfo$;
+  getProfileInfo(): Promise<ProfileInfo> {
+    if (!this.profileInfo) {
+      this.profileInfo = this.http
+        .get<ProfileInfo>(this.profileInfoUrl, { observe: 'response' })
+        .map((res: HttpResponse<any>) => {
+          const data = res.body;
+          const pi = new ProfileInfo();
+          pi.activeProfiles = data.activeProfiles;
+          pi.ribbonEnv = data.ribbonEnv;
+          pi.configurationSources = data.configurationSources;
+          pi.inProduction = data.activeProfiles.includes('prod');
+          pi.swaggerEnabled = data.activeProfiles.includes('swagger');
+          return pi;
+        })
+        .toPromise();
     }
-
-    this.profileInfo$ = this.http.get<InfoResponse>(this.infoUrl).pipe(
-      map((response: InfoResponse) => {
-        const profileInfo: ProfileInfo = {
-          activeProfiles: response.activeProfiles,
-          inProduction: response.activeProfiles && response.activeProfiles.includes('prod'),
-          swaggerEnabled: response.activeProfiles && response.activeProfiles.includes('swagger'),
-          cloudConfigServerConfigurationSources: response['cloud-config-server-configuration-sources'],
-          cloudConfigLabel: response['cloud-config-label']
-        };
-        if (response.activeProfiles && response['display-ribbon-on-profiles']) {
-          const displayRibbonOnProfiles = response['display-ribbon-on-profiles'].split(',');
-          const ribbonProfiles = displayRibbonOnProfiles.filter(
-            profile => response.activeProfiles && response.activeProfiles.includes(profile)
-          );
-          if (ribbonProfiles.length > 0) {
-            profileInfo.ribbonEnv = ribbonProfiles[0];
-          }
-        }
-        return profileInfo;
-      }),
-      shareReplay()
-    );
-    return this.profileInfo$;
+    return this.profileInfo;
   }
 }

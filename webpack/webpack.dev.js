@@ -20,14 +20,7 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
         contentBase: './target/classes/static/',
         proxy: [{
             context: [
-                '/api',
-                '/services',
-                '/management',
-                '/config',
-                '/swagger-resources',
-                '/v2/api-docs',
-                '/h2-console',
-                '/auth'
+                '/'
             ],
             target: `http${options.tls ? 's' : ''}://localhost:8761`,
             secure: false,
@@ -37,8 +30,7 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
         watchOptions: {
             ignored: /node_modules/
         },
-        https: options.tls,
-        historyApiFallback: true
+        https: options.tls
     },
     entry: {
         polyfills: './src/main/webapp/app/polyfills',
@@ -52,10 +44,10 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
     },
     module: {
         rules: [{
-            test: /\.(j|t)s$/,
+            test: /\.ts$/,
             enforce: 'pre',
-            loader: 'eslint-loader',
-            exclude: /node_modules/
+            loader: 'tslint-loader',
+            exclude: [/(node_modules)/, new RegExp('reflect-metadata\\' + path.sep + 'Reflect\\.ts')]
         },
         {
             test: /\.ts$/,
@@ -82,13 +74,14 @@ module.exports = (options) => webpackMerge(commonConfig({ env: ENV }), {
                         transpileOnly: true,
                         happyPackMode: true
                     }
-                }
+                },
+                'angular-router-loader'
             ],
             exclude: /(node_modules)/
         },
         {
             test: /\.scss$/,
-            use: ['to-string-loader', 'css-loader', 'postcss-loader', {
+            use: ['to-string-loader', 'css-loader', {
                 loader: 'sass-loader',
                 options: { implementation: sass }
             }],

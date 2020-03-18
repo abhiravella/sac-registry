@@ -16,21 +16,7 @@ export const errorRoute: Routes = [
     component: ErrorComponent,
     data: {
       authorities: [],
-      pageTitle: 'Error page!',
-      errorMessage: 'You are not authorized to access this page.'
+      pageTitle: 'Error page!'
     }
-  },
-  {
-    path: '404',
-    component: ErrorComponent,
-    data: {
-      authorities: [],
-      pageTitle: 'Error page!',
-      errorMessage: 'The page does not exist.'
-    }
-  },
-  {
-    path: '**',
-    redirectTo: '/404'
   }
 ];

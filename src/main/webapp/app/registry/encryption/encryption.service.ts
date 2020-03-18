@@ -1,17 +1,20 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs/Observable';
 
-@Injectable({ providedIn: 'root' })
-export class EncryptionService {
+@Injectable()
+export class JhiEncryptionService {
   constructor(private http: HttpClient) {}
 
   encrypt(textToEncrypt: string): Observable<string> {
-    return this.http.post<string>('config/encrypt', textToEncrypt).pipe(map((response: string) => '{cipher}' + response));
+    return this.http.post('config/encrypt', textToEncrypt, { responseType: 'text' }).map((response: string) => {
+      return '{cipher}' + response;
+    });
   }
 
   decrypt(textToDecrypt: string): Observable<string> {
-    return this.http.post<string>('config/decrypt', textToDecrypt);
+    return this.http.post('config/decrypt', textToDecrypt, { responseType: 'text' }).map((response: string) => {
+      return response;
+    });
   }
 }

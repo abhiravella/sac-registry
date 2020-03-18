@@ -1,36 +1,35 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { ReplicasService } from './replicas.service';
-import { RefreshService } from 'app/shared/refresh/refresh.service';
+import { JhiReplicasService } from './replicas.service';
+import { JhiRefreshService } from 'app/shared/refresh/refresh.service';
+import { Subscription } from 'rxjs/Subscription';
 
 @Component({
   selector: 'jhi-replicas',
   templateUrl: './replicas.component.html',
   styleUrls: ['replicas.component.scss']
 })
-export class ReplicasComponent implements OnInit, OnDestroy {
-  showMore = true;
-  replicas?: Array<string>;
-  unsubscribe$ = new Subject();
+export class JhiReplicasComponent implements OnInit, OnDestroy {
+  showMore: boolean;
+  replicas: any;
 
-  constructor(private replicasService: ReplicasService, private refreshService: RefreshService) {}
+  refreshReloadSubscription: Subscription;
 
-  ngOnInit(): void {
-    this.refreshService.refreshReload$.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.refresh());
+  constructor(private replicasService: JhiReplicasService, private refreshService: JhiRefreshService) {
+    this.showMore = true;
+  }
+
+  ngOnInit() {
+    this.refreshReloadSubscription = this.refreshService.refreshReload$.subscribe(empty => this.refresh());
     this.refresh();
   }
 
-  refresh(): void {
-    this.replicasService
-      .findAll()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(replicas => (this.replicas = replicas));
+  ngOnDestroy() {
+    this.refreshReloadSubscription.unsubscribe();
   }
 
-  ngOnDestroy(): void {
-    // prevent memory leak when component destroyed
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
+  refresh() {
+    this.replicasService.findAll().subscribe(replicas => {
+      this.replicas = replicas;
+    });
   }
 }

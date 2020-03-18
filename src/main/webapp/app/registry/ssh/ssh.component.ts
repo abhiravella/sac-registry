@@ -1,31 +1,21 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Component, OnInit } from '@angular/core';
 import { JhiSSHService } from './ssh.service';
 
 @Component({
   selector: 'jhi-applications',
   templateUrl: './ssh.component.html'
 })
-export class SSHComponent implements OnInit, OnDestroy {
-  data?: string;
+export class JhiSSHComponent implements OnInit {
+  data: any;
   showMore: boolean;
-  unsubscribe$ = new Subject();
 
   constructor(private sshService: JhiSSHService) {
     this.showMore = true;
   }
 
-  ngOnInit(): void {
-    this.sshService
-      .getSshPublicKey()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe(response => (this.data = response));
-  }
-
-  ngOnDestroy(): void {
-    // prevent memory leak when component destroyed
-    this.unsubscribe$.next();
-    this.unsubscribe$.complete();
+  ngOnInit() {
+    this.sshService.getSshPublicKey().subscribe(response => {
+      this.data = response;
+    });
   }
 }

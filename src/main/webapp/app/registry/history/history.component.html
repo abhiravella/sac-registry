@@ -22,13 +22,13 @@
                         <th>Instance</th>
                     </tr>
                     </thead>
-                    <tbody *ngIf="histories">
-                    <tr *ngFor="let history of (histories | keys | orderBy:'key':false)">
+                    <tbody *ngIf="items">
+                    <tr *ngFor="let instance of items">
                         <td>
-                            {{history.key | date:'medium'}}
+                            {{instance.key | date:'medium'}}
                         </td>
                         <td>
-                            {{history.value}}
+                            {{instance.value}}
                         </td>
                     </tr>
                     </tbody>
